@@ -18,9 +18,12 @@ import java.util.function.Predicate;
 public class ServiceRooting {
  
     Hashtable<String,Routeur> rs;
-
+    
+   static Hashtable<String,Routeur> globalMultipointRelay;
+    
     public ServiceRooting() {
         rs = new Hashtable<>();
+        globalMultipointRelay = new Hashtable<>();
     }
     
     
@@ -61,25 +64,25 @@ public class ServiceRooting {
     public String resolve(Routeur source, Routeur destination) {
         
         if(source.checkVoisin(destination)){
-            return source +" --> "+ destination;
+            return source +" , "+ destination;
         }
-        
-        return source +" --> "+resolve(source.getBestFit(), destination,source);
+        Hashtable<String, Routeur> localRelay = source.getLocalRelay();
+        if(localRelay == null) return "";
+        globalMultipointRelay.putAll(localRelay);
+         
+        return resolve(localRelay, destination)+" "+globalMultipointRelay.keySet();
         
         
         
     }
 
-    private String resolve(Routeur source, Routeur destination, Routeur ignore) {
-        
-        if(source.checkVoisin(destination)){
-            return source +" --> "+ destination;
-        }
-        return source + " --> " +resolve(source.getBestFit(ignore),destination ,source);
-        
-                
+    private String resolve(Hashtable<String, Routeur> localRelay, Routeur destination) {
+        localRelay.values().stream().forEach(localPointRelay->{
+            resolve(localPointRelay, destination);
+        });
+     return "";
     }
-    
+
     
     
 }

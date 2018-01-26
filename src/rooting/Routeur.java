@@ -6,6 +6,7 @@
 package rooting;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -104,6 +105,51 @@ public class Routeur {
         return voisin.size();
     }
 
+    public List<Routeur>get2Hop( ){
+        ArrayList<Routeur> routeurs2Hop = new ArrayList<>();
+        voisin.stream().map((routeur) -> routeur.getVoisins()).forEachOrdered((voisins) -> {
+            voisins.stream().filter((currentVoisin) -> (!voisin.contains(currentVoisin) && !routeurs2Hop.contains(currentVoisin))).forEachOrdered((currentVoisin) -> {
+                routeurs2Hop.add(currentVoisin);
+            });
+        });
+        return routeurs2Hop;
+    }
+    
+    
+    private int getIndiceDescriptor(Routeur routeur) {
+        if(voisin.contains(routeur)){
+            return routeur.getCount();
+        }
+        return -1;
+    }
+    
+    boolean process = true;
+    
+    public Hashtable<String,Routeur> getLocalRelay(){
+        if(!process) return null;
+        process = false ;
+        Hashtable<String,Routeur> localMultiPointRelay = new Hashtable<>();
+        List<Routeur> voisins2Hop = this.get2Hop();
+        for (Routeur voisin2hop : voisins2Hop) {
+            int maxInd = -1;
+            Routeur currentElu = null;
+            for (Routeur routeur : voisin) {
+                int indice = voisin2hop.getIndiceDescriptor(routeur);
+                if(indice!=-1 && maxInd <= indice){
+                    currentElu = routeur;
+                    maxInd = indice;
+                }
+            }
+            if(currentElu != null )localMultiPointRelay.put(currentElu.name,currentElu);
+        }
+        return localMultiPointRelay;
+    }
+
+    public List<Routeur> getVoisins() {
+        return voisin;
+    }
+    
+    
     Routeur getBestFit(Routeur ignore) {
          int max = -1;
         Routeur winner = null;
@@ -116,6 +162,7 @@ public class Routeur {
         }
         return winner;
     }
+
     
     
     
